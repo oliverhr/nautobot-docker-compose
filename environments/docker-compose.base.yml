@@ -7,6 +7,7 @@ x-nautobot-build: &nautobot-build
     context: "../"
     target: "nautobot"
     dockerfile: "environments/base.dockerfile"
+
 x-nautobot-base: &nautobot-base
   image: "yourrepo/nautobot-docker-compose:local"
   env_file:

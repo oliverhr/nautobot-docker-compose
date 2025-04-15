@@ -38,6 +38,7 @@ namespace.configure(
         "nautobot_docker_compose": {
             "project_name": "nautobot_docker_compose",
             "use_django_extensions": True,
+            "compose_dir": os.path.join(os.path.dirname(__file__), "environments/"),
         }
     }
 )
