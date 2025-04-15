@@ -1,5 +1,9 @@
 ARG NAUTOBOT_VERSION
 ARG PYTHON_VER
+
+# -----------------------------------------------------------------------------
+# Stage: base image
+# -----------------------------------------------------------------------------
 FROM ghcr.io/nautobot/nautobot:${NAUTOBOT_VERSION}-py${PYTHON_VER} as nautobot-base
 
 USER 0
@@ -11,6 +15,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     pip --no-cache-dir install --upgrade pip wheel
 
+# -----------------------------------------------------------------------------
+# Stage: Builder
+# -----------------------------------------------------------------------------
 FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VERSION}-py${PYTHON_VER} as builder
 
 CMD ["nautobot-server", "runserver", "0.0.0.0:8080", "--insecure"]
@@ -23,9 +30,8 @@ RUN apt-get update && \
 
 RUN apt-get install -y libldap2-dev libsasl2-dev libssl-dev
 
-COPY ./pyproject.toml ./poetry.lock /source/
+COPY ../pyproject.toml ../poetry.lock /source/
 COPY ../plugins /source/plugins
-# COPY ./packages /source/packages
 
 # Install the nautobot project to include Nautobot
 RUN cd /source && \
@@ -35,35 +41,34 @@ RUN cd /source && \
 
 RUN pip3 install --upgrade pip wheel && pip3 install django-auth-ldap
 
-# -------------------------------------------------------------------------------------
-# Install all included plugins
-# -------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Plugins
+# -----------------------------------------------------------------------------
 RUN for plugin in /source/plugins/*; do \
         cd $plugin && \
         poetry build && \
         cp dist/*.whl /tmp/dist; \
     done
 
-COPY ./jobs /opt/nautobot/jobs
-# COPY ./metrics /opt/nautobot/metrics
+COPY ../jobs /opt/nautobot/jobs
 COPY ../config/nautobot_config.py.ldap /opt/nautobot/nautobot_config.py
 
 WORKDIR /source
 
-###################################
+###############################################################################
 
-# -------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Final Image
-# -------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 FROM nautobot-base as nautobot
+
 ARG PYTHON_VER
 
 # Copy from base the required python libraries and binaries
 COPY --from=builder /tmp/dist /tmp/dist
+COPY --from=builder /opt/nautobot /opt/nautobot
 COPY --from=builder /usr/local/lib/python${PYTHON_VER}/site-packages /usr/local/lib/python${PYTHON_VER}/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /opt/nautobot /opt/nautobot
-# COPY ./packages /source/packages
 
 RUN grep -v /source/plugins /tmp/dist/requirements.txt > /tmp/dist/new_requirements.txt && \
     pip install -r /tmp/dist/new_requirements.txt && \
