@@ -108,7 +108,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-local.env
 .env
 .venv
 env/
@@ -298,9 +297,11 @@ fabric.properties
 .vscode/*
 *.code-workspace
 
-# Rando
+# Environment files
 creds.env
+local.env
 
 
 # Invoke overrides
 invoke.yml
+invoke.yaml
