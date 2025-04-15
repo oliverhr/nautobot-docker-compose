@@ -1,14 +1,12 @@
 # nautobot-docker-compose
 
-Network to Code has an existing published Nautobot Docker Image on Docker Hub. See [here](https://hub.docker.com/repository/docker/networktocode/nautobot). This project uses Docker Compose. The Docker compose file in this project pulls that Nautobot Docker image using the latest stable Nautobot release along with several other Docker images required for Nautobot to function. See the diagram below. This project is for those looking for a multi-container single-node install for Nautobot often coupled with backup & HA capabilities from their hypervisor manager.
+Network to Code has an existing published Nautobot Docker Image on Docker Hub. This project uses Docker Compose. The Docker compose file in this project pulls that Nautobot Docker image using the latest stable Nautobot release along with several other Docker images required for Nautobot to function. See the diagram below. This project is for those looking for a multi-container single-node install for Nautobot often coupled with backup & HA capabilities from their hypervisor manager.
 
 ![Container Stack](docs/img/container_stack.png)
 
 By default, this project deploys the Nautobot application, a single worker container, Redis containers, and PostgreSQL. It does not deploy NGINX, SSL, or any Nautobot plugins. However, the project is extensible to allow users to tailor it to their specific requirements. For example, if you need to deploy [SSL](docs/create_ssl_cert.md) or [plugins](docs/plugins.md), see the docs linked. The web server used on the application is [pyuwsgi](https://uwsgi-docs.readthedocs.io/en/latest/).
 
-## Build and start Nautobot
-
-*Requirements:*
+## Requirements
 
 - Python >= 3.6
 - Python modules:
@@ -19,7 +17,11 @@ By default, this project deploys the Nautobot application, a single worker conta
 pip install invoke toml
 ```
 
-Now you can build, deploy and populate Nautobot with the following steps
+
+
+## Build and start Nautobot
+
+You can build, deploy and populate Nautobot with the following steps
 
 1. `invoke build`
 2. `invoke start` or `invoke debug`
@@ -175,17 +177,6 @@ After the containers have started:
 docker container ls
 ```
 
-Example Output:
-
-```bash
-❯ docker container ls
-CONTAINER ID   IMAGE                           COMMAND                  CREATED         STATUS                   PORTS                                                                                  NAMES
-143f10daa229   networktocode/nautobot:latest   "nautobot-server rqw…"   2 minutes ago   Up 2 minutes (healthy)                                                                                          nautobot-docker-compose_celery_worker_1
-bb29124d7acb   networktocode/nautobot:latest   "/docker-entrypoint.…"   2 minutes ago   Up 2 minutes (healthy)   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp, 0.0.0.0:8443->8443/tcp, :::8443->8443/tcp   nautobot-docker-compose_nautobot_1
-ad57ac1749b3   redis:alpine                    "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes             6379/tcp                                                                               nautobot-docker-compose_redis_1
-5ab83264e6fe   postgres:10                     "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes             5432/tcp                                                                               nautobot-docker-compose_postgres_1
-```
-
 2. Execute Create Super User Command and follow the prompts
 
 ```bash
@@ -202,3 +193,12 @@ Password:
 Password (again):
 Superuser created successfully.
 ```
+
+
+
+## References
+
+- Docker Hub Network to Code profile
+  - https://hub.docker.com/r/networktocode
+- Nautobot docker image on docker hub
+  - https://hub.docker.com/r/networktocode/nautobot
