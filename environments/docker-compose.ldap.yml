@@ -6,7 +6,7 @@ x-nautobot-build: &nautobot-build
       PYTHON_VER: "${PYTHON_VER}"
     context: "../"
     target: "nautobot"
-    dockerfile: "environments/Dockerfile-LDAP"
+    dockerfile: "environments/ldap.dockerfile"
 x-nautobot-base: &nautobot-base
   image: "companyname/nautobot-ldap"
   env_file:

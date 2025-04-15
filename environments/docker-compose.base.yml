@@ -6,7 +6,7 @@ x-nautobot-build: &nautobot-build
       PYTHON_VER: "${PYTHON_VER}"
     context: "../"
     target: "nautobot"
-    dockerfile: "environments/Dockerfile"
+    dockerfile: "environments/base.dockerfile"
 x-nautobot-base: &nautobot-base
   image: "yourrepo/nautobot-docker-compose:local"
   env_file:

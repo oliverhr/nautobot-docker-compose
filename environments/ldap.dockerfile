@@ -43,7 +43,7 @@ RUN pip3 install --upgrade pip wheel && pip3 install django-auth-ldap
 
 # -----------------------------------------------------------------------------
 # Plugins
-# -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
 RUN for plugin in /source/plugins/*; do \
         cd $plugin && \
         poetry build && \
@@ -51,7 +51,7 @@ RUN for plugin in /source/plugins/*; do \
     done
 
 COPY ../jobs /opt/nautobot/jobs
-COPY ../config/nautobot_config.py.ldap /opt/nautobot/nautobot_config.py
+COPY ../config/nautobot_config_ldap.py. /opt/nautobot/nautobot_config.py
 
 WORKDIR /source
 
@@ -79,3 +79,5 @@ RUN grep -v /source/plugins /tmp/dist/requirements.txt > /tmp/dist/new_requireme
 USER nautobot
 
 WORKDIR /opt/nautobot
+
+# vim: set ft=dockerfile :

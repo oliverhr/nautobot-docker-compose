@@ -74,3 +74,5 @@ RUN pyuwsgi --cflags | sed 's/ /\n/g' | grep -e "^-DUWSGI_SSL$"
 USER nautobot
 
 WORKDIR /opt/nautobot
+
+# vim: set ft=dockerfile :
