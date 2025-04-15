@@ -28,22 +28,17 @@ def is_truthy(arg):
         raise ValueError(f"Invalid truthy value: `{arg}`")
 
 
-# Use pyinvoke configuration for default values, see http://docs.pyinvoke.org/en/stable/concepts/configuration.html
-# Variables may be overwritten in invoke.yml or by the environment variables INVOKE_NAUTOBOT_xxx
+# Use pyinvoke configuration for default values, more at:
+#   http://docs.pyinvoke.org/en/stable/concepts/configuration.html
+# Variables may be overwritten in invoke.yml or
+# by the environment variables INVOKE_NAUTOBOT_...
 namespace = Collection("nautobot_docker_compose")
 namespace.configure(
     {
         "nautobot_docker_compose": {
             "project_name": "nautobot_docker_compose",
             "python_ver": "3.8",
-            "local": False,
             "use_django_extensions": True,
-            "compose_dir": os.path.join(os.path.dirname(__file__), "environments/"),
-            "compose_files": [
-                "docker-compose.postgres.yml",
-                "docker-compose.base.yml",
-                "docker-compose.local.yml",
-            ],
         }
     }
 )
@@ -290,3 +285,4 @@ def db_import(context):
 
     print("Importing DB...\n")
     docker_compose(context, import_cmd, pty=True)
+
