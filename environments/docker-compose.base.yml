@@ -9,7 +9,7 @@ x-nautobot-build: &nautobot-build
     dockerfile: "environments/base.dockerfile"
 
 x-nautobot-base: &nautobot-base
-  image: "yourrepo/nautobot-docker-compose:local"
+  image: "${IMAGE_NAME}"
   env_file:
     - "local.env"
     - "creds.env"

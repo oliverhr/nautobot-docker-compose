@@ -82,6 +82,7 @@ def docker_compose(context, command, **kwargs):
     compose_env = {
         "PYTHON_VER": context.nautobot_docker_compose.python_ver,
         "NAUTOBOT_VERSION": NAUTOBOT_VERSION,
+        "IMAGE_NAME": context.nautobot_docker_compose.image_name,
     }
     compose_command = f'docker compose --project-name {context.nautobot_docker_compose.project_name} --project-directory "{context.nautobot_docker_compose.compose_dir}"'
     for compose_file in context.nautobot_docker_compose.compose_files:

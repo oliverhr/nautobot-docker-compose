@@ -2,6 +2,7 @@
 nautobot_docker_compose:
   project_name: "nautobot-docker-compose"
   python_ver: "3.12"
+  image_name: "yourrepo/nautobot-docker-compose:local"
   local: false
   compose_dir: "environments/"
   compose_files:

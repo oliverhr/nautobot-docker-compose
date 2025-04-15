@@ -9,7 +9,7 @@ x-nautobot-build: &nautobot-build
     dockerfile: "environments/ldap.dockerfile"
 
 x-nautobot-base: &nautobot-base
-  image: "companyname/nautobot-ldap"
+  image: "${IMAGE_NAME}"
   env_file:
     - "local.env"
     - "creds.env"

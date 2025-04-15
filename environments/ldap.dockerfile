@@ -80,4 +80,4 @@ USER nautobot
 
 WORKDIR /opt/nautobot
 
-# vim: set ft=dockerfile :
+# vim: set ft=dockerfile nowrap :
