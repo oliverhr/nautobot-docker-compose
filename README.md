@@ -63,13 +63,18 @@ Each command can be executed with a simple `invoke <command>`. Each command also
 
 ## Getting Started
 
-1. Copy the `invoke.example.yml` file to `invoke.yml`:
+To build a local image of Nautobot you need a file named `invoke.[yml | yaml]`
+
+You can use the `invoke.local.yml` or the `invoke.ldap.yml`:
 
 ```bash
+# you can create a symlink
+ln -s invoke.local.yaml invoke.yaml
+# or you can create a copy if you need custom values
 cp invoke.example.yml invoke.yml
 ```
 
-8. Run `invoke build start` to build the containers and start the environment.
+Run `invoke build start` to build the containers and start the environment.
 
 ```bash
 invoke build start
@@ -110,7 +115,7 @@ Superuser created successfully.
 
 ### NOTE - MySQL
 
-If you want to use MySQL for the database instead of PostgreSQL, perform the below step in place for step #7 above:
+If you want to use MySQL for the database instead of PostgreSQL use the `invoke.mysql.yml` as invoke file:
 
 ```bash
 cp invoke.mysql.yml invoke.yml
