@@ -37,7 +37,6 @@ namespace.configure(
     {
         "nautobot_docker_compose": {
             "project_name": "nautobot_docker_compose",
-            "python_ver": "3.8",
             "use_django_extensions": True,
         }
     }
