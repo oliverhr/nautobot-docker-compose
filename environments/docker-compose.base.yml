@@ -15,6 +15,8 @@ x-nautobot-base: &nautobot-base
     - "creds.env"
   tty: true
 
+# -----------------------------------------------------------------------------
+
 services:
   nautobot:
     depends_on:
@@ -24,6 +26,7 @@ services:
     # volumes:
     #   - "./nautobot.key:/opt/nautobot/nautobot.key:ro"
     #   - "./nautobot.crt:/opt/nautobot/nautobot.crt:ro"
+
   celery_worker:
     entrypoint:
       - "sh"
@@ -45,6 +48,7 @@ services:
           "nautobot-server celery inspect ping --destination celery@$$HOSTNAME"  ## $$ because of docker-compose
         ]
     <<: *nautobot-base
+
   celery_beat:
     entrypoint:
       - "sh"
@@ -56,7 +60,7 @@ services:
     healthcheck:
       disable: true
     <<: *nautobot-base
-  # ---------------------------------
+
   redis:
     image: "redis:6-alpine"
     env_file:

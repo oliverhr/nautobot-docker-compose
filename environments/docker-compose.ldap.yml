@@ -7,12 +7,15 @@ x-nautobot-build: &nautobot-build
     context: "../"
     target: "nautobot"
     dockerfile: "environments/ldap.dockerfile"
+
 x-nautobot-base: &nautobot-base
   image: "companyname/nautobot-ldap"
   env_file:
     - "local.env"
     - "creds.env"
   tty: true
+
+# -----------------------------------------------------------------------------
 
 services:
   nautobot:
@@ -23,6 +26,7 @@ services:
     # volumes:
     #   - "./nautobot.key:/opt/nautobot/nautobot.key:ro"
     #   - "./nautobot.crt:/opt/nautobot/nautobot.crt:ro"
+
   celery_worker:
     entrypoint:
       - "sh"
@@ -43,6 +47,7 @@ services:
           "nautobot-server celery inspect ping --destination celery@$$HOSTNAME"  ## $$ because of docker-compose
         ]
     <<: *nautobot-base
+
   celery_beat:
     entrypoint:
       - "sh"
@@ -53,7 +58,7 @@ services:
     healthcheck:
       disable: true
     <<: *nautobot-base
-  # ---------------------------------
+
   redis:
     image: "redis:6-alpine"
     env_file:
