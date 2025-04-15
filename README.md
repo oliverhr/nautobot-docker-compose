@@ -17,47 +17,7 @@ By default, this project deploys the Nautobot application, a single worker conta
 pip install invoke toml
 ```
 
-
-
-## Build and start Nautobot
-
-You can build, deploy and populate Nautobot with the following steps
-
-1. `invoke build`
-2. `invoke start` or `invoke debug`
-
-> The standard way of starting the containers is to use `invoke start`. If you wish to see the logs from the containers while running Nautobot use the `invoke debug` command. Be aware that exiting debug mode will stop all the containers.
-
-Nautobot will be available on port 8080 locally http://localhost:8080
-
-## Cleanup Everything and start from scratch
-
-1. `invoke destroy`
-2. `invoke build`
-3. `invoke db-import`
-4. `invoke start`
-
-> The `invoke db-import` command will only work if you have a previous backup of your database.
-
-## Export current database
-
-While the database is already running
-
-* `invoke db-export`
-
-### Docker Compose Files
-
-Several Docker Compose files are provided as [overrides](https://docs.docker.com/compose/extends/) to allow for various development configurations, these can be thought of as layers to Docker Compose, each Compose file is described below:
-
-* `docker-compose.postgres.yml` - Starts the prerequisite PostgreSQL service if using PostgreSQL as your database.
-* `docker-compose.mysql.yml` - Starts the prerequisite MySQL service if using MySQL as your database is desired.
-* `docker-compose.base.yml` - Defines the default Nautobot, Celery worker, Celery beats scheduler, and Redis services and how they should be run and built.
-* `docker-compose.ldap.yml` - Duplicate of `docker-compose.base.yml` file but points to LDAP-specific Dockerfile. This is done to make building an LDAP-supported installation easier.
-* `docker-compose.local.yml` - Defines how the Nautobot and Celery worker containers should run locally with port mappings and volume mounts. This is helpful as an example when you wish to create another instance, for example, a production instance, and you want to have the volume mounts and port mappings done differently.
-
-> Only `docker-compose.postgres.yml` or `docker-compose.mysql.com` should be used as they are mutually exclusive and providing the same database backend service.
-
-### Environment Files
+## Configuration
 
 Environment files (.env) are the standard way of providing configuration information or secrets in Docker containers. This project includes two example environment files that each serve a specific purpose:
 
@@ -70,6 +30,9 @@ To use the provided environment files it's suggested that you copy the file to t
 ```bash
 cp environments/local.example.env environments/local.env
 cp environments/creds.example.env environments/creds.env
+
+# Make this files available for the current user only.
+chmod 0600 environments/local.env environments/creds.env
 ```
 
 ## CLI Helper Commands
@@ -78,7 +41,7 @@ The project comes with a CLI helper based on [invoke](http://www.pyinvoke.org/) 
 
 Each command can be executed with a simple `invoke <command>`. Each command also has its own help `invoke <command> --help`.
 
-### Manage Nautobot environment
+#### Manage Nautobot environment
 
 ```bash
   build            Build all docker images.
@@ -90,7 +53,7 @@ Each command can be executed with a simple `invoke <command>`. Each command also
   db-import        Import test data.
 ```
 
-### Utility
+#### Utility
 
 ```bash
   cli              Launch a bash shell inside the running Nautobot container.
@@ -100,40 +63,7 @@ Each command can be executed with a simple `invoke <command>`. Each command also
 
 ## Getting Started
 
-1. Have [Docker](https://docs.docker.com/get-docker/) installed on the host.
-2. Clone this repository to your Nautobot host into the current user directory.
-
-```bash
-git clone https://github.com/nautobot/nautobot-docker-compose.git
-```
-
-3. Navigate to the new directory from the git clone.
-
-```bash
-cd nautobot-docker-compose
-```
-
-4. Copy the `local.env.example` file to `local.env` and `creds.example.env` file to `creds.env` in the environments folder.
-
-```bash
-cp environments/local.example.env environments/local.env
-cp environments/creds.example.env environments/creds.env
-```
-
-5. Update the `.env` files for your environment. **THESE SHOULD BE CHANGED** for proper security and the `creds.env` file should never be synchronized to git as it should contain all secrets for the environment!
-
-```bash
-vi environments/local.env
-vi environments/creds.env
-```
-
-6. Update the `local.env` and `creds.env` files to be only available for the current user.
-
-```bash
-chmod 0600 environments/local.env environments/creds.env
-```
-
-7. Copy the `invoke.example.yml` file to `invoke.yml`:
+1. Copy the `invoke.example.yml` file to `invoke.yml`:
 
 ```bash
 cp invoke.example.yml invoke.yml
@@ -145,29 +75,13 @@ cp invoke.example.yml invoke.yml
 invoke build start
 ```
 
-### NOTE - MySQL
+### Create a Super User Account
 
-If you want to use MySQL for the database instead of PostgreSQL, perform the below step in place for step #7 above:
-
-```bash
-cp invoke.mysql.yml invoke.yml
-```
-
-### Getting Started - LDAP
-
-The use of LDAP requires the installation of some additional libraries and some configuration in `nautobot_config.py`. See the [LDAP documentation](docs/ldap.md).
-
-### Getting Started - Plugins
-
-The installation of plugins has a slightly more involved getting-started process. See the [Plugin documentation](docs/plugins.md).
-
-## Super User Account
-
-### Create Super User via Environment
+**Via Environment**
 
 The Docker container has a Docker entry point script that allows you to create a super user by the usage of Environment variables. This can be done by updating the `creds.env` file environment option of `NAUTOBOT_CREATE_SUPERUSER` to `True`. This will then use the information supplied to create the specified superuser.
 
-### Create Super User via Container
+**Via Container**
 
 After the containers have started:
 
@@ -194,7 +108,27 @@ Password (again):
 Superuser created successfully.
 ```
 
+### NOTE - MySQL
 
+If you want to use MySQL for the database instead of PostgreSQL, perform the below step in place for step #7 above:
+
+```bash
+cp invoke.mysql.yml invoke.yml
+```
+
+## Additional Documentation
+
+### LDAP
+
+The use of LDAP requires the installation of some additional libraries and some configuration in `nautobot_config.py`. See the [LDAP documentation](docs/ldap.md).
+
+### Plugins
+
+The installation of plugins has a slightly more involved getting-started process. See the [Plugin documentation](docs/plugins.md).
+
+### General Technical information 
+
+If you have questions regarding the technical decisions, you can know more about it on the docs folder on the [technical.md](docs/technical.md) file.
 
 ## References
 
