@@ -58,7 +58,7 @@ services:
     <<: *nautobot-base
   # ---------------------------------
   redis:
-    image: "redis:6-alpine"
+    image: "redis:alpine"
     env_file:
       - "local.env"
       - "creds.env"
