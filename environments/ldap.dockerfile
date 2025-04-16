@@ -2,7 +2,7 @@ ARG NAUTOBOT_VERSION
 ARG PYTHON_VER
 
 # -----------------------------------------------------------------------------
-# Stage: base image
+# Stage: Base image
 # -----------------------------------------------------------------------------
 FROM ghcr.io/nautobot/nautobot:${NAUTOBOT_VERSION}-py${PYTHON_VER} as nautobot-base
 
@@ -24,22 +24,20 @@ CMD ["nautobot-server", "runserver", "0.0.0.0:8080", "--insecure"]
 
 RUN apt-get update && \
     apt-get upgrade -y && \
+    apt-get install -y libldap2-dev libsasl2-dev libssl-dev && \
     apt-get autoremove -y && \
     apt-get clean all && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install -y libldap2-dev libsasl2-dev libssl-dev
-
-COPY ../pyproject.toml ../poetry.lock /source/
+COPY ../pyproject.toml ../poetry.lock /source
 COPY ../plugins /source/plugins
 
 # Install the nautobot project to include Nautobot
 RUN cd /source && \
     poetry install --no-interaction --no-ansi && \
     mkdir /tmp/dist && \
-    poetry export --without-hashes -o /tmp/dist/requirements.txt
-
-RUN pip3 install --upgrade pip wheel && pip3 install django-auth-ldap
+    poetry export --without-hashes -o /tmp/dist/requirements.txt && \
+    pip3 install --upgrade pip wheel && pip3 install django-auth-ldap
 
 # -----------------------------------------------------------------------------
 # Plugins

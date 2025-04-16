@@ -2,7 +2,7 @@ ARG NAUTOBOT_VERSION
 ARG PYTHON_VER
 
 # -----------------------------------------------------------------------------
-# Stage: base image
+# Stage: Base image
 # -----------------------------------------------------------------------------
 FROM ghcr.io/nautobot/nautobot:${NAUTOBOT_VERSION}-py${PYTHON_VER} as nautobot-base
 
@@ -27,7 +27,6 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     apt-get clean all && \
     rm -rf /var/lib/apt/lists/*
-
 
 COPY ../pyproject.toml ../poetry.lock /source/
 COPY ../plugins /source/plugins
