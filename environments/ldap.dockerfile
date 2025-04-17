@@ -1,10 +1,10 @@
 ARG NAUTOBOT_VERSION
-ARG PYTHON_VER
+ARG PYTHON_VERSION
 
 # -----------------------------------------------------------------------------
 # Stage: Base image
 # -----------------------------------------------------------------------------
-FROM ghcr.io/nautobot/nautobot:${NAUTOBOT_VERSION}-py${PYTHON_VER} as nautobot-base
+FROM ghcr.io/nautobot/nautobot:${NAUTOBOT_VERSION}-py${PYTHON_VERSION} as nautobot-base
 
 USER 0
 
@@ -18,7 +18,7 @@ RUN apt-get update && \
 # -----------------------------------------------------------------------------
 # Stage: Builder
 # -----------------------------------------------------------------------------
-FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VERSION}-py${PYTHON_VER} as builder
+FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VERSION}-py${PYTHON_VERSION} as builder
 
 CMD ["nautobot-server", "runserver", "0.0.0.0:8080", "--insecure"]
 
@@ -60,12 +60,12 @@ WORKDIR /source
 # -----------------------------------------------------------------------------
 FROM nautobot-base as nautobot
 
-ARG PYTHON_VER
+ARG PYTHON_VERSION
 
 # Copy from base the required python libraries and binaries
 COPY --from=builder /tmp/dist /tmp/dist
 COPY --from=builder /opt/nautobot /opt/nautobot
-COPY --from=builder /usr/local/lib/python${PYTHON_VER}/site-packages /usr/local/lib/python${PYTHON_VER}/site-packages
+COPY --from=builder /usr/local/lib/python${PYTHON_VERSION}/site-packages /usr/local/lib/python${PYTHON_VERSION}/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 RUN grep -v /source/plugins /tmp/dist/requirements.txt > /tmp/dist/new_requirements.txt && \

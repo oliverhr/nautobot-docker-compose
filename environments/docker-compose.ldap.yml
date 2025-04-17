@@ -3,7 +3,7 @@ x-nautobot-build: &nautobot-build
   build:
     args:
       NAUTOBOT_VERSION: "${NAUTOBOT_VERSION}"
-      PYTHON_VER: "${PYTHON_VER}"
+      PYTHON_VERSION: "${PYTHON_VERSION}"
     context: "../"
     target: "nautobot"
     dockerfile: "environments/ldap.dockerfile"

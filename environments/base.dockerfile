@@ -1,10 +1,10 @@
 ARG NAUTOBOT_VERSION
-ARG PYTHON_VER
+ARG PYTHON_VERSION
 
-# -----------------------------------------------------------------------------
+# #############################################################################
 # Stage: Base image
 # -----------------------------------------------------------------------------
-FROM ghcr.io/nautobot/nautobot:${NAUTOBOT_VERSION}-py${PYTHON_VER} as nautobot-base
+FROM ghcr.io/nautobot/nautobot:${NAUTOBOT_VERSION}-py${PYTHON_VERSION} as nautobot-base
 
 USER 0
 
@@ -15,10 +15,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     pip --no-cache-dir install --upgrade pip wheel
 
-# -----------------------------------------------------------------------------
+# #############################################################################
 # Stage: Builder
 # -----------------------------------------------------------------------------
-FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VERSION}-py${PYTHON_VER} as builder
+FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VERSION}-py${PYTHON_VERSION} as builder
 
 CMD ["nautobot-server", "runserver", "0.0.0.0:8080", "--insecure"]
 
@@ -28,10 +28,10 @@ RUN apt-get update && \
     apt-get clean all && \
     rm -rf /var/lib/apt/lists/*
 
+# -----------------------------------------------------------------------------
+# Nautobot project
+# -----------------------------------------------------------------------------
 COPY ../pyproject.toml ../poetry.lock /source/
-COPY ../plugins /source/plugins
-
-# Install the nautobot project to include Nautobot
 RUN cd /source && \
     poetry install --no-interaction --no-ansi && \
     mkdir /tmp/dist && \
@@ -40,30 +40,32 @@ RUN cd /source && \
 # -----------------------------------------------------------------------------
 # Plugins
 # -----------------------------------------------------------------------------
+# COPY ../plugins /source/plugins
 # RUN for plugin in /source/plugins/*; do \
 #         cd $plugin && \
 #         poetry build && \
 #         cp dist/*.whl /tmp/dist; \
 #     done
 
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
 COPY ../jobs /opt/nautobot/jobs
 COPY ../config/nautobot_config.py /opt/nautobot/nautobot_config.py
 
 WORKDIR /source
 
-###############################################################################
-
-# -----------------------------------------------------------------------------
+# #############################################################################
 # Final Image
 # -----------------------------------------------------------------------------
 FROM nautobot-base as nautobot
 
-ARG PYTHON_VER
+ARG PYTHON_VERSION
 
 # Copy from base the required python libraries and binaries
 COPY --from=builder /tmp/dist /tmp/dist
 COPY --from=builder /opt/nautobot /opt/nautobot
-COPY --from=builder /usr/local/lib/python${PYTHON_VER}/site-packages /usr/local/lib/python${PYTHON_VER}/site-packages
+COPY --from=builder /usr/local/lib/python${PYTHON_VERSION}/site-packages /usr/local/lib/python${PYTHON_VERSION}/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Verify that pyuwsgi was installed correctly, i.e. with SSL support
