@@ -1,7 +1,6 @@
 """Development Tasks."""
-
-from time import sleep
 import os
+from time import sleep
 import toml
 from invoke import Collection, task as invoke_task
 
@@ -43,15 +42,6 @@ namespace.configure(
     }
 )
 
-with open("pyproject.toml", "r", encoding="utf8") as pyproject:
-    parsed_toml = toml.load(pyproject)
-
-try:
-    NAUTOBOT_VERSION = parsed_toml["tool"]["poetry"]["dependencies"]["nautobot"]["version"]
-except TypeError:
-    NAUTOBOT_VERSION = parsed_toml["tool"]["poetry"]["dependencies"]["nautobot"]
-
-
 def task(function=None, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
     """Task decorator to override the default Invoke task decorator."""
 
@@ -80,8 +70,8 @@ def docker_compose(context, command, **kwargs):
         **kwargs: Passed through to the context.run() call.
     """
     compose_env = {
-        "PYTHON_VER": context.nautobot_docker_compose.python_ver,
-        "NAUTOBOT_VERSION": NAUTOBOT_VERSION,
+        "PYTHON_VERSION": context.nautobot_docker_compose.python_version,
+        "NAUTOBOT_VERSION": context.nautobot_docker_compose.nautobot_version,
         "IMAGE_NAME": context.nautobot_docker_compose.image_name,
     }
     compose_command = f'docker compose --project-name {context.nautobot_docker_compose.project_name} --project-directory "{context.nautobot_docker_compose.compose_dir}"'
@@ -129,8 +119,18 @@ def build(context, force_rm=False, cache=True):
     if force_rm:
         command += " --force-rm"
 
+    PYTHON_VERSION = context.nautobot_docker_compose.python_version
+    NAUTOBOT_VERSION = None
+    try:
+        NAUTOBOT_VERSION = context.nautobot_docker_compose.nautobot_version
+    except:
+        with open('pyproject.toml', 'r', encoding='utf8') as file:
+            dependencies = (toml.load(file))['tool']['poetry']['dependencies']
+        NAUTOBOT_VERSION = dependencies['nautobot']
+        context.nautobot_docker_compose['nautobot_version'] = NAUTOBOT_VERSION
+
     print(
-        f"Building Nautobot {NAUTOBOT_VERSION} with Python {context.nautobot_docker_compose.python_ver}..."
+        f"Building Nautobot {NAUTOBOT_VERSION} with Python {PYTHON_VERSION}..."
     )
     docker_compose(context, command)
 
