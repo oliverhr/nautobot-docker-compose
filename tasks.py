@@ -31,10 +31,10 @@ def is_truthy(arg):
 #   http://docs.pyinvoke.org/en/stable/concepts/configuration.html
 # Variables may be overwritten in invoke.yml or
 # by the environment variables INVOKE_NAUTOBOT_...
-namespace = Collection("nautobot_docker_compose")
+namespace = Collection("nautobot-docker-compose")
 namespace.configure(
     {
-        "nautobot_docker_compose": {
+        "networktocode": {
             "project_name": "nautobot_docker_compose",
             "use_django_extensions": True,
             "compose_dir": os.path.join(os.path.dirname(__file__), "environments/"),
@@ -70,14 +70,14 @@ def docker_compose(context, command, **kwargs):
         **kwargs: Passed through to the context.run() call.
     """
     compose_env = {
-        "PYTHON_VERSION": context.nautobot_docker_compose.python_version,
-        "NAUTOBOT_VERSION": context.nautobot_docker_compose.nautobot_version,
-        "IMAGE_NAME": context.nautobot_docker_compose.image_name,
+        "PYTHON_VERSION": context.networktocode.python_version,
+        "NAUTOBOT_VERSION": context.networktocode.nautobot_version,
+        "IMAGE_NAME": context.networktocode.image_name,
     }
-    compose_command = f'docker compose --project-name {context.nautobot_docker_compose.project_name} --project-directory "{context.nautobot_docker_compose.compose_dir}"'
-    for compose_file in context.nautobot_docker_compose.compose_files:
+    compose_command = f'docker compose --project-name {context.networktocode.project_name} --project-directory "{context.networktocode.compose_dir}"'
+    for compose_file in context.networktocode.compose_files:
         compose_file_path = os.path.join(
-            context.nautobot_docker_compose.compose_dir, compose_file
+            context.networktocode.compose_dir, compose_file
         )
         compose_command += f' -f "{compose_file_path}"'
     compose_command += f" {command}"
@@ -87,7 +87,7 @@ def docker_compose(context, command, **kwargs):
 
 def run_command(context, command, **kwargs):
     """Run a command locally or inside the nautobot container."""
-    if is_truthy(context.nautobot_docker_compose.local):
+    if is_truthy(context.networktocode.local):
         context.run(command)
     else:
         # Check if nautobot is running, no need to start another nautobot container to run a command
@@ -119,15 +119,18 @@ def build(context, force_rm=False, cache=True):
     if force_rm:
         command += " --force-rm"
 
-    PYTHON_VERSION = context.nautobot_docker_compose.python_version
+    PYTHON_VERSION = context.networktocode.python_version
     NAUTOBOT_VERSION = None
     try:
-        NAUTOBOT_VERSION = context.nautobot_docker_compose.nautobot_version
+        NAUTOBOT_VERSION = context.networktocode.nautobot_version
+        print('-'*50)
+        print(NAUTOBOT_VERSION)
+        print('-'*50)
     except:
         with open('pyproject.toml', 'r', encoding='utf8') as file:
             dependencies = (toml.load(file))['tool']['poetry']['dependencies']
         NAUTOBOT_VERSION = dependencies['nautobot']
-        context.nautobot_docker_compose['nautobot_version'] = NAUTOBOT_VERSION
+        context.networktocode['nautobot_version'] = NAUTOBOT_VERSION
 
     print(
         f"Building Nautobot {NAUTOBOT_VERSION} with Python {PYTHON_VERSION}..."
@@ -155,21 +158,21 @@ def start(context):
 @task
 def restart(context):
     """Gracefully restart all containers."""
-    print("Restarting Nautobot...")
+    print("Restarting networktocode...")
     docker_compose(context, "restart")
 
 
 @task
 def stop(context):
     """Stop Nautobot and its dependencies."""
-    print("Stopping Nautobot...")
+    print("Stopping networktocode...")
     docker_compose(context, "down")
 
 
 @task
 def destroy(context):
     """Destroy all containers and volumes."""
-    print("Destroying Nautobot...")
+    print("Destroying networktocode...")
     docker_compose(context, "down --volumes")
 
 
@@ -179,7 +182,7 @@ def destroy(context):
 @task
 def nbshell(context):
     """Launch an interactive nbshell session."""
-    if context.nautobot_docker_compose.use_django_extensions:
+    if context.networktocode.use_django_extensions:
         command = "nautobot-server shell_plus"
     else:
         command = "nautobot-server nbshell"
@@ -236,8 +239,8 @@ def post_upgrade(context):
 def import_nautobot_data(context):
     """Import nautobot_data.json."""
     # This task expects to be run in the docker container for now
-    context.nautobot_docker_compose.local = False
-    copy_cmd = f"docker cp nautobot_data.json {context.nautobot_docker_compose.project_name}_nautobot_1:/tmp/nautobot_data.json"
+    context.networktocode.local = False
+    copy_cmd = f"docker cp nautobot_data.json {context.networktocode.project_name}_nautobot_1:/tmp/nautobot_data.json"
     import_cmd = "nautobot-server import_nautobot_json /tmp/nautobot_data.json 2.10.4"
     print("Starting Nautobot")
     start(context)
@@ -250,17 +253,17 @@ def import_nautobot_data(context):
 
 @task
 def db_export(context):
-    """Export the database from the dev environment to nautobot.sql."""
+    """Export the database from the dev environment to networktocode.sql."""
     docker_compose(context, "up -d db")
     sleep(2)  # Wait for the database to be ready
 
     print("Exporting the database as an SQL dump...")
-    if "docker-compose.mysql.yml" in context.nautobot_docker_compose.compose_files:
-        export_cmd = 'exec db sh -c "mysqldump -u \${NAUTOBOT_DB_USER} –p \${NAUTOBOT_DB_PASSWORD} \${NAUTOBOT_DB_NAME} nautobot > /tmp/nautobot.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
-        copy_cmd = f"docker cp {context.nautobot_docker_compose.project_name}-db-1:/tmp/nautobot.sql nautobot.sql"
+    if "docker-compose.mysql.yml" in context.networktocode.compose_files:
+        export_cmd = 'exec db sh -c "mysqldump -u \${NAUTOBOT_DB_USER} –p \${NAUTOBOT_DB_PASSWORD} \${NAUTOBOT_DB_NAME} nautobot > /tmp/networktocode.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
+        copy_cmd = f"docker cp {context.networktocode.project_name}-db-1:/tmp/networktocode.sql networktocode.sql"
     else:
-        export_cmd = 'exec db sh -c "pg_dump -h localhost -d \${NAUTOBOT_DB_NAME} -U \${NAUTOBOT_DB_USER} > /tmp/nautobot.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
-        copy_cmd = f"docker cp {context.nautobot_docker_compose.project_name}-db-1:/tmp/nautobot.sql nautobot.sql"
+        export_cmd = 'exec db sh -c "pg_dump -h localhost -d \${NAUTOBOT_DB_NAME} -U \${NAUTOBOT_DB_USER} > /tmp/networktocode.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
+        copy_cmd = f"docker cp {context.networktocode.project_name}-db-1:/tmp/networktocode.sql networktocode.sql"
     docker_compose(context, export_cmd, pty=True)
     print("Copying the SQL Dump locally...")
     context.run(copy_cmd)
@@ -276,12 +279,12 @@ def db_import(context):
     sleep(2)
 
     print("Copying DB Dump to DB container...\n")
-    if "docker-compose.mysql.yml" in context.nautobot_docker_compose.compose_files:
-        copy_cmd = f"docker cp nautobot.sql {context.nautobot_docker_compose.project_name}-db-1:/tmp/nautobot.sql"
-        import_cmd = 'exec db sh -c "mysql -u \${NAUTOBOT_DB_USER} –p \${NAUTOBOT_DB_PASSWORD} < /tmp/nautobot.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
+    if "docker-compose.mysql.yml" in context.networktocode.compose_files:
+        copy_cmd = f"docker cp networktocode.sql {context.networktocode.project_name}-db-1:/tmp/networktocode.sql"
+        import_cmd = 'exec db sh -c "mysql -u \${NAUTOBOT_DB_USER} –p \${NAUTOBOT_DB_PASSWORD} < /tmp/networktocode.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
     else:
-        copy_cmd = f"docker cp nautobot.sql {context.nautobot_docker_compose.project_name}-db-1:/tmp/nautobot.sql"
-        import_cmd = 'exec db sh -c "psql -h localhost -U \${NAUTOBOT_DB_USER} < /tmp/nautobot.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
+        copy_cmd = f"docker cp networktocode.sql {context.networktocode.project_name}-db-1:/tmp/networktocode.sql"
+        import_cmd = 'exec db sh -c "psql -h localhost -U \${NAUTOBOT_DB_USER} < /tmp/networktocode.sql"'  # noqa: W605 pylint: disable=anomalous-backslash-in-string
     context.run(copy_cmd)
 
     print("Importing DB...\n")

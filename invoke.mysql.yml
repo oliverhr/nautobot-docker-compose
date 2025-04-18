@@ -1,6 +1,7 @@
 ---
-nautobot_docker_compose:
+networktocode:
   project_name: "nautobot-docker-compose"
+  nautobot_version: "2.4.7"
   python_version: "3.12"
   local: false
   compose_dir: "environments/"
