@@ -35,6 +35,24 @@ cp environments/creds.example.env environments/creds.env
 chmod 0600 environments/local.env environments/creds.env
 ```
 
+### Invoke Environment Variables
+
+Another way to configure or override the configuration for the "invoke namespace" set in the `invoke.ylm` file, is to create environment variables prefixed with `INVOKE_{NAMESPACE}_{PROPERTY_NAME}` in this case the namespace is `NETWORKTOCODE`.
+
+To set the Nautobot version to 2.4.7 and call the build process you can run this:
+
+```
+INVOKE_NETWORKTOCODE_NAUTOBOT_VERSION=2.4.7 invoke build
+```
+
+Or if what we want is to override multiple configuration values we can do this:
+
+```
+export INVOKE_NETWORKTOCODE_NAUTOBOT_VERSION=2.4.7
+export INVOKE_NETWORKTOCODE_PYTHON_VERSION=3.12
+invoke build
+```
+
 ## CLI Helper Commands
 
 The project comes with a CLI helper based on [invoke](http://www.pyinvoke.org/) to help manage the Nautobot environment. The commands are listed below in 2 categories `environment` and `utility`.
