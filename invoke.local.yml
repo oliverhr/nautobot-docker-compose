@@ -1,9 +1,9 @@
 ---
 networktocode:
   project_name: "nautobot-docker-compose"
-  nautobot_version: "7.7.7"
+  nautobot_version: "2.4.7"
   python_version: "3.12"
-  image_name: "oliverhr/nautobot-development"
+  image_name: "yourrepo/nautobot-development:local"
   local: false
   compose_dir: "environments/"
   compose_files:
