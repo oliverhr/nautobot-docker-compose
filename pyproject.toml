@@ -8,8 +8,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.9.2,<3.13"
-nautobot = "2.4.7"
-
 # To install a local plugin
 # nautobot-example-plugin = {path = "plugins/plugin_example", develop = true}
 

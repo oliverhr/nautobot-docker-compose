@@ -1,12 +1,12 @@
 ---
 x-nautobot-build: &nautobot-build
   build:
+    context: "../"
+    dockerfile: "environments/base.dockerfile"
     args:
       NAUTOBOT_VERSION: "${NAUTOBOT_VERSION}"
       PYTHON_VERSION: "${PYTHON_VERSION}"
-    context: "../"
     target: "nautobot"
-    dockerfile: "environments/base.dockerfile"
 
 x-nautobot-base: &nautobot-base
   image: "${IMAGE_NAME}"

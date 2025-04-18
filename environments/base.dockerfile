@@ -19,6 +19,7 @@ RUN apt-get update && \
 # Stage: Builder
 # -----------------------------------------------------------------------------
 FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VERSION}-py${PYTHON_VERSION} as builder
+ARG NAUTOBOT_VERSION
 
 CMD ["nautobot-server", "runserver", "0.0.0.0:8080", "--insecure"]
 
@@ -33,6 +34,8 @@ RUN apt-get update && \
 # -----------------------------------------------------------------------------
 COPY ../pyproject.toml ../poetry.lock /source/
 RUN cd /source && \
+    poetry --version && \
+    poetry add "nautobot==${NAUTOBOT_VERSION}" && \
     poetry install --no-interaction --no-ansi && \
     mkdir /tmp/dist && \
     poetry export --without-hashes -o /tmp/dist/requirements.txt
@@ -59,7 +62,6 @@ WORKDIR /source
 # Final Image
 # -----------------------------------------------------------------------------
 FROM nautobot-base as nautobot
-
 ARG PYTHON_VERSION
 
 # Copy from base the required python libraries and binaries
