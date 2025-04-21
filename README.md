@@ -1,82 +1,63 @@
 # nautobot-docker-compose
 
-Network to Code has an existing published Nautobot Docker Image on Docker Hub. See [here](https://hub.docker.com/repository/docker/networktocode/nautobot). This project uses Docker Compose. The Docker compose file in this project pulls that Nautobot Docker image using the latest stable Nautobot release along with several other Docker images required for Nautobot to function. See the diagram below. This project is for those looking for a multi-container single-node install for Nautobot often coupled with backup & HA capabilities from their hypervisor manager.
+Taked from [Nautobot Docker Compose](https://github.com/nautobot/nautobot-docker-compose) project, so most of the docs and files are taken from there.
 
-![Container Stack](docs/img/container_stack.png)
+I'm using this repo to understand how Nautobot-Docker-Compose build process works, for the moment changes are being only applied to the `base` configuration and not to the LDAP and just for the build process.
 
-By default, this project deploys the Nautobot application, a single worker container, Redis containers, and PostgreSQL. It does not deploy NGINX, SSL, or any Nautobot plugins. However, the project is extensible to allow users to tailor it to their specific requirements. For example, if you need to deploy [SSL](docs/create_ssl_cert.md) or [plugins](docs/plugins.md), see the docs linked. The web server used on the application is [pyuwsgi](https://uwsgi-docs.readthedocs.io/en/latest/).
+The objective is use [Taskfile](https://taskfile.dev/) which can be replaced easily with a "native" pipeline from GitHub or GitLab.
 
-## Docker Compose
+**Read First:**
 
-This documentation is now written assuming the latest Docker Compose methodology of using the Docker Compose Plugin instead of the independent docker-compose executable. See the [Docker Compose Plugin installation notes](https://docs.docker.com/compose/install/)
+- https://docs.nautobot.com/projects/core/en/stable/user-guide/administration/guides/docker
 
-## Why Poetry?
+#### Changes
 
-Poetry was chosen to replace both **requirements.txt** and **setup.py**. Poetry uses the `pyproject.toml` file to define package details, main package dependencies, development dependencies, and tool-related configurations. Poetry resolves dependencies and stores the hashes and metadata within the `poetry.lock` file (similar to performing a `pip freeze > requirements.txt`). The `poetry.lock` is what is used to provide consistency for package versions across the project to make sure anyone who is developing on it is using the same Python dependency versions. Poetry also provides virtual environments by simply being in the same directory as the `pyproject.toml` and `poetry.lock` files and executing the `poetry shell` command.
+The main differences are:
 
-## Why Invoke?
+- Renamed the invoke namespace context/configuration from
+  - From `nautobot_docker_compose`
+  - To `networktocode`
+- Nested some properties used as environment variables for Docker-Compose and Dockerfile
+  - `namespace.configuration().networktocode.env`
+  - All the properties on `networktocode.env` dictionary must be all caps
 
-Invoke is a Python replacement for Make. Invoke looks for a `tasks.py` file that contains functions decorated by `@task` that provide the equivalents of **Make targets**.
+## Requirements
 
-The reason it was chosen over Makefile was due to our collective familiarity with Python and the ability to organize and re-use Invoke tasks across Cookiecutter templates.  It also makes managing your Nautobot project vastly simpler by issuing simple commands instead of long command strings that can be confusing.
+- Docker
+- Docker Compose plugin
+- Python >= 3.6
+  - modules: `invoke`
 
-## How to use this repo
+Dependencies for the build are explained on Nautobot repository:
+- Drops support for <= 3.9.1 https://github.com/nautobot/nautobot/pull/7019
+- Drops support for 3.8: https://github.com/nautobot/nautobot/releases/tag/v2.4.0
 
-This repo is designed to provide a custom build of Nautobot to include a set of plugins which can then be used in a development environment or deployed in production.  Included in this repo is a skeleton Nautobot plugin which is designed only to provide a quick example of how a plugin could be developed.  Plugins should ultimately be built as packages, published to a PyPI style repository and added to the poetry `pyproject.toml` in this repo.  The plugin code should be hosted in their own repositories with their own CI pipelines and not included here.
+```
+pip install invoke
+```
 
-## Install Docker
+You can use poetry but is not required on the host
 
-Before beginning, install Docker and verify its operation by running `docker run hello-world`. If you encounter any issues connecting to the Docker service, check that your local user account is permitted to run Docker. **Note:** `docker` v1.10.0 or later is required.
+```
+poetry install
+```
 
-## Install Poetry
+### Taskfile
 
-It is recommended to follow one of the [installation methods detailed in their documentation](https://python-poetry.org/docs/#installation).  It's advised to install poetry as a system-level dependency and not inside a virtual environment.  Once Poetry has been installed you can create the Poetry virtual environment with a few simple commands:
+A `Taskfile` is being added as example is usable, but I place (move) to an upper level from this repository directory.
 
-1. `poetry shell`
-2. `poetry lock`
-3. `poetry install`
+```
+# I end with something like this
+~/my-local-pipeles/
+├── Taskfile.yml
+└── nautobot-docker-compose/
+		├── ...
+		└── tasks.py
+```
 
-The last command, `poetry install`, will install all of the project dependencies for you to manage your Nautobot project.  This includes installing the `invoke` Python project.
 
-## Build and start Nautobot
 
-You can build, deploy and populate Nautobot with the following steps
-
-1. `invoke build`
-2. `invoke start` or `invoke debug`
-
-> The standard way of starting the containers is to use `invoke start`. If you wish to see the logs from the containers while running Nautobot use the `invoke debug` command. Be aware that exiting debug mode will stop all the containers.
-
-Nautobot will be available on port 8080 locally http://localhost:8080
-
-## Cleanup Everything and start from scratch
-
-1. `invoke destroy`
-2. `invoke build`
-3. `invoke db-import`
-4. `invoke start`
-
-> The `invoke db-import` command will only work if you have a previous backup of your database.
-
-## Export current database
-
-While the database is already running
-
-* `invoke db-export`
-
-### Docker Compose Files
-
-Several Docker Compose files are provided as [overrides](https://docs.docker.com/compose/extends/) to allow for various development configurations, these can be thought of as layers to Docker Compose, each Compose file is described below:
-
-* `docker-compose.postgres.yml` - Starts the prerequisite PostgreSQL service if using PostgreSQL as your database.
-* `docker-compose.mysql.yml` - Starts the prerequisite MySQL service if using MySQL as your database is desired.
-* `docker-compose.base.yml` - Defines the default Nautobot, Celery worker, Celery beats scheduler, and Redis services and how they should be run and built.
-* `docker-compose.ldap.yml` - Duplicate of `docker-compose.base.yml` file but points to LDAP-specific Dockerfile. This is done to make building an LDAP-supported installation easier.
-* `docker-compose.local.yml` - Defines how the Nautobot and Celery worker containers should run locally with port mappings and volume mounts. This is helpful as an example when you wish to create another instance, for example, a production instance, and you want to have the volume mounts and port mappings done differently.
-
-> Only `docker-compose.postgres.yml` or `docker-compose.mysql.com` should be used as they are mutually exclusive and providing the same database backend service.
-
-### Environment Files
+## Configuration
 
 Environment files (.env) are the standard way of providing configuration information or secrets in Docker containers. This project includes two example environment files that each serve a specific purpose:
 
@@ -89,6 +70,31 @@ To use the provided environment files it's suggested that you copy the file to t
 ```bash
 cp environments/local.example.env environments/local.env
 cp environments/creds.example.env environments/creds.env
+
+# Make this files available for the current user only.
+chmod 0600 environments/local.env environments/creds.env
+```
+
+### Invoke Environment Variables
+
+Another way to configure or override the configuration for the "invoke namespace" set in the `invoke.ylm` file, is to create environment variables prefixed with `INVOKE_{NAMESPACE}_{PROPERTY_NAME}` in this case the namespace is `NETWORKTOCODE`.
+
+To set the Nautobot version to 2.4.7 and call the build process you can run this:
+
+```
+INVOKE_NETWORKTOCODE_NAUTOBOT_VERSION=2.4.7 invoke build
+```
+
+Or if what we want is to override multiple configuration `env` values we can do shomething like this:
+
+```
+export INVOKE_NETWORKTOCODE_ENV_IMAGE_NAME=resitry.io/namespace/image-name:tag
+export INVOKE_NETWORKTOCODE_ENV_PYTHON_SUPPORTED_RANGE='>=3.9.2,<3.13'
+
+export INVOKE_NETWORKTOCODE_NAUTOBOT_VERSION=2.4.7
+export INVOKE_NETWORKTOCODE_PYTHON_VERSION=3.12
+
+invoke build
 ```
 
 ## CLI Helper Commands
@@ -97,7 +103,7 @@ The project comes with a CLI helper based on [invoke](http://www.pyinvoke.org/) 
 
 Each command can be executed with a simple `invoke <command>`. Each command also has its own help `invoke <command> --help`.
 
-### Manage Nautobot environment
+#### Manage Nautobot environment
 
 ```bash
   build            Build all docker images.
@@ -109,7 +115,7 @@ Each command can be executed with a simple `invoke <command>`. Each command also
   db-import        Import test data.
 ```
 
-### Utility
+#### Utility
 
 ```bash
   cli              Launch a bash shell inside the running Nautobot container.
@@ -119,76 +125,30 @@ Each command can be executed with a simple `invoke <command>`. Each command also
 
 ## Getting Started
 
-> **NOTE**: Please be aware that you must be in the Poetry virtual environment before issuing any invoke commands. The steps to do this are detailed above.
+To build a local image of Nautobot you need a file named `invoke.[yml | yaml]`
 
-1. Have [Docker](https://docs.docker.com/get-docker/) installed on the host.
-2. Clone this repository to your Nautobot host into the current user directory.
-
-```bash
-git clone https://github.com/nautobot/nautobot-docker-compose.git
-```
-
-3. Navigate to the new directory from the git clone.
+You can use the `invoke.local.yml` or the `invoke.ldap.yml`:
 
 ```bash
-cd nautobot-docker-compose
-```
-
-4. Copy the `local.env.example` file to `local.env` and `creds.example.env` file to `creds.env` in the environments folder.
-
-```bash
-cp environments/local.example.env environments/local.env
-cp environments/creds.example.env environments/creds.env
-```
-
-5. Update the `.env` files for your environment. **THESE SHOULD BE CHANGED** for proper security and the `creds.env` file should never be synchronized to git as it should contain all secrets for the environment!
-
-```bash
-vi environments/local.env
-vi environments/creds.env
-```
-
-6. Update the `local.env` and `creds.env` files to be only available for the current user.
-
-```bash
-chmod 0600 environments/local.env environments/creds.env
-```
-
-7. Copy the `invoke.example.yml` file to `invoke.yml`:
-
-```bash
+# you can create a symlink
+ln -s invoke.local.yaml invoke.yaml
+# or you can create a copy if you need custom values
 cp invoke.example.yml invoke.yml
 ```
 
-8. Run `invoke build start` to build the containers and start the environment.
+Run `invoke build start` to build the containers and start the environment.
 
 ```bash
 invoke build start
 ```
 
-### NOTE - MySQL
+### Create a Super User Account
 
-If you want to use MySQL for the database instead of PostgreSQL, perform the below step in place for step #7 above:
-
-```bash
-cp invoke.mysql.yml invoke.yml
-```
-
-### Getting Started - LDAP
-
-The use of LDAP requires the installation of some additional libraries and some configuration in `nautobot_config.py`. See the [LDAP documentation](docs/ldap.md).
-
-### Getting Started - Plugins
-
-The installation of plugins has a slightly more involved getting-started process. See the [Plugin documentation](docs/plugins.md).
-
-## Super User Account
-
-### Create Super User via Environment
+**Via Environment**
 
 The Docker container has a Docker entry point script that allows you to create a super user by the usage of Environment variables. This can be done by updating the `creds.env` file environment option of `NAUTOBOT_CREATE_SUPERUSER` to `True`. This will then use the information supplied to create the specified superuser.
 
-### Create Super User via Container
+**Via Container**
 
 After the containers have started:
 
@@ -196,17 +156,6 @@ After the containers have started:
 
 ```bash
 docker container ls
-```
-
-Example Output:
-
-```bash
-❯ docker container ls
-CONTAINER ID   IMAGE                           COMMAND                  CREATED         STATUS                   PORTS                                                                                  NAMES
-143f10daa229   networktocode/nautobot:latest   "nautobot-server rqw…"   2 minutes ago   Up 2 minutes (healthy)                                                                                          nautobot-docker-compose_celery_worker_1
-bb29124d7acb   networktocode/nautobot:latest   "/docker-entrypoint.…"   2 minutes ago   Up 2 minutes (healthy)   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp, 0.0.0.0:8443->8443/tcp, :::8443->8443/tcp   nautobot-docker-compose_nautobot_1
-ad57ac1749b3   redis:alpine                    "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes             6379/tcp                                                                               nautobot-docker-compose_redis_1
-5ab83264e6fe   postgres:10                     "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes             5432/tcp                                                                               nautobot-docker-compose_postgres_1
 ```
 
 2. Execute Create Super User Command and follow the prompts
@@ -225,3 +174,35 @@ Password:
 Password (again):
 Superuser created successfully.
 ```
+
+### NOTE - MySQL
+
+If you want to use MySQL for the database instead of PostgreSQL use the `invoke.mysql.yml` as invoke file:
+
+```bash
+cp invoke.mysql.yml invoke.yml
+```
+
+## Additional Documentation
+
+### LDAP
+
+The use of LDAP requires the installation of some additional libraries and some configuration in `nautobot_config.py`. See the [LDAP documentation](docs/ldap.md).
+
+### Plugins
+
+The installation of plugins has a slightly more involved getting-started process. See the [Plugin documentation](docs/plugins.md).
+
+### General Technical information
+
+If you have questions regarding the technical decisions, you can know more about it on the docs folder on the [technical.md](docs/technical.md) file.
+
+## References
+
+- Docker Hub Network to Code profile
+  - https://hub.docker.com/r/networktocode
+- Nautobot docker images on docker hub
+  - https://hub.docker.com/r/networktocode/nautobot
+  - https://hub.docker.com/r/networktocode/nautobot-dev
+- Nautobot Development guide:
+  - https://docs.nautobot.com/projects/core/en/stable/development/core/getting-started/

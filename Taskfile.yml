@@ -1,0 +1,90 @@
+# https://taskfile.dev
+---
+version: "3"
+
+silent: true
+
+vars:
+  PROJ_DIR: "nautobot-docker-compose"
+  VENV_DIR: ".venv-py3-local"
+  PYTHON_VERSION: "3.12"
+  NAUTOBOT_VERSION: "2.4.7"
+
+tasks:
+  setup:
+    dir: "{{.ROOT_TASKFILE}}"
+    cmds:
+      - pwd
+      - echo '# - - - Creating a virtual python environment - - -'
+      - which python3
+      - python3 -m venv {{.VENV_DIR}}
+      - |
+        # multiline sh because of source command
+        echo '# - - - Installing local python dependecies - - -'
+        source {{.VENV_DIR}}/bin/activate
+        python --version
+        python -m pip install --upgrade pip setuptools wheel invoke
+        invoke --version
+      - docker --version
+      - docker compose version
+      - echo ------------------------------------------------------------
+
+  pull:
+    vars:
+      REGISTRY: ghcr.io/nautobot/nautobot
+    cmds:
+      - |
+        echo ------------------------------------------------------------
+        echo '{{.REGISTRY}}:{{.NAUTOBOT_VERSION}}-py{{.PYTHON_VERSION}}'
+        echo ------------------------------------------------------------
+      - docker pull '{{.REGISTRY}}:{{.NAUTOBOT_VERSION}}-py{{.PYTHON_VERSION}}'
+      - |
+        echo ------------------------------------------------------------
+        echo '{{.REGISTRY}}dev:{{.NAUTOBOT_VERSION}}-py{{.PYTHON_VERSION}}'
+        echo ------------------------------------------------------------
+      - docker pull '{{.REGISTRY}}-dev:{{.NAUTOBOT_VERSION}}-py{{.PYTHON_VERSION}}'
+
+  build:
+    vars:
+      IMAGE_NAME: "oliverhr/nautobot-development"
+      PYTHON_SUPPORTED_RANGE: ">=3.9.2,<3.13"
+    env:
+      INVOKE_NETWORKTOCODE_ENV_IMAGE_NAME: "{{.IMAGE_NAME}}"
+      INVOKE_NETWORKTOCODE_ENV_PYTHON_SUPPORTED_RANGE: "{{.PYTHON_SUPPORTED_RANGE}}"
+      INVOKE_NETWORKTOCODE_ENV_PYTHON_VERSION: "{{.PYTHON_VERSION}}"
+      INVOKE_NETWORKTOCODE_ENV_NAUTOBOT_VERSION: "{{.NAUTOBOT_VERSION}}"
+    dir: "{{.TASKFILE_DIR}}/{{.PROJ_DIR}}"
+    preconditions:
+      - test -d ../{{.VENV_DIR}}
+      - test -f invoke.yml
+    requires:
+      vars:
+        - name: PYTHON_VERSION
+          enum: [3.9, 3.10, 3.11, 3.12]
+    cmds:
+      - |
+        echo ------------------------------------------------------------
+        pwd
+        ls -l
+        source ../{{.VENV_DIR}}/bin/activate
+        echo ------------------------------------------------------------
+        echo NAUTOBOT_VERSION = $INVOKE_NETWORKTOCODE_ENV_NAUTOBOT_VERSION
+        echo PYTHON_SUPPORTED_RANGE: $INVOKE_NETWORKTOCODE_ENV_PYTHON_SUPPORTED_RANGE
+        echo PYTHON_VERSION = $INVOKE_NETWORKTOCODE_ENV_PYTHON_VERSION
+        echo IMAGE_NAME = $INVOKE_NETWORKTOCODE_ENV_IMAGE_NAME
+        invoke build
+        echo ------------------------------------------------------------
+      - docker image ls
+
+  deploy:
+    dir: "{{.USER_WORKING_DIR}}"
+    preconditions:
+      - test true
+    cmds:
+      - echo ------------------------------------------------------------
+      - |
+        pwd
+        echo Deploy images to target server
+      - echo ------------------------------------------------------------
+
+# vim: set ft=yaml ts=2 sw=2 et nowrap :

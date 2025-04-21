@@ -1,10 +1,14 @@
 ---
-nautobot_docker_compose:
+networktocode:
   project_name: "nautobot-docker-compose"
-  python_ver: "3.12"
   local: false
   compose_dir: "environments/"
   compose_files:
     - "docker-compose.postgres.yml"
     - "docker-compose.ldap.yml"
     - "docker-compose.local.yml"
+  env:
+    IMAGE_NAME: "yourrepo/nautobot-development:local"
+    PYTHON_SUPPORTED_RANGE: ">=3.9.2,<3.13"
+    NAUTOBOT_VERSION: "2.4.7"
+    PYTHON_VERSION: "3.12"
