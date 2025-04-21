@@ -298,9 +298,8 @@ fabric.properties
 .vscode/*
 *.code-workspace
 
-# Rando
+# Secrets/Credentials files
 creds.env
-local.env
 
 
 # Invoke overrides
