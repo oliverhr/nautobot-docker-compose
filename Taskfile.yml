@@ -47,9 +47,10 @@ tasks:
   build:
     vars:
       IMAGE_NAME: "oliverhr/nautobot-development"
+      TAG: "{{.NAUTOBOT_VERSION}}-py{{.PYTHON_VERSION}}"
       PYTHON_SUPPORTED_RANGE: ">=3.9.2,<3.13"
     env:
-      INVOKE_NETWORKTOCODE_ENV_IMAGE_NAME: "{{.IMAGE_NAME}}"
+      INVOKE_NETWORKTOCODE_ENV_IMAGE_NAME: "{{.IMAGE_NAME}}:{{.TAG}}"
       INVOKE_NETWORKTOCODE_ENV_PYTHON_SUPPORTED_RANGE: "{{.PYTHON_SUPPORTED_RANGE}}"
       INVOKE_NETWORKTOCODE_ENV_PYTHON_VERSION: "{{.PYTHON_VERSION}}"
       INVOKE_NETWORKTOCODE_ENV_NAUTOBOT_VERSION: "{{.NAUTOBOT_VERSION}}"
@@ -86,5 +87,4 @@ tasks:
         pwd
         echo Deploy images to target server
       - echo ------------------------------------------------------------
-
 # vim: set ft=yaml ts=2 sw=2 et nowrap :
