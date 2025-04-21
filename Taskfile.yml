@@ -46,7 +46,7 @@ tasks:
 
   build:
     vars:
-      IMAGE_NAME: "oliverhr/nautobot-development"
+      IMAGE_NAME: "repository/namespace/nautobot-development"
       TAG: "{{.NAUTOBOT_VERSION}}-py{{.PYTHON_VERSION}}"
       PYTHON_SUPPORTED_RANGE: ">=3.9.2,<3.13"
     env:
