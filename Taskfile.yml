@@ -5,7 +5,7 @@ version: "3"
 silent: true
 
 vars:
-  PROJ_DIR: "nautobot-docker-compose"
+  PROJECT_NAME: "nautobot-docker-compose"
   VENV_DIR: ".venv-py3-local"
   PYTHON_VERSION: "3.12"
   NAUTOBOT_VERSION: "2.4.7"
@@ -54,7 +54,7 @@ tasks:
       INVOKE_NETWORKTOCODE_ENV_PYTHON_SUPPORTED_RANGE: "{{.PYTHON_SUPPORTED_RANGE}}"
       INVOKE_NETWORKTOCODE_ENV_PYTHON_VERSION: "{{.PYTHON_VERSION}}"
       INVOKE_NETWORKTOCODE_ENV_NAUTOBOT_VERSION: "{{.NAUTOBOT_VERSION}}"
-    dir: "{{.TASKFILE_DIR}}/{{.PROJ_DIR}}"
+    dir: "{{.TASKFILE_DIR}}
     preconditions:
       - test -d ../{{.VENV_DIR}}
       - test -f invoke.yml
