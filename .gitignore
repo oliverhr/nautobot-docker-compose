@@ -1,3 +1,9 @@
+# Env files: environmet variables, secrets, configurations
+.env
+.dist.env
+*.dist.env
+*.dist.py
+
 # Ansible Retry Files
 *.retry
 
@@ -107,15 +113,11 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
-local.env
-.env
+# Python Environments common names
 .venv
+.venv-*/
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -298,10 +300,3 @@ fabric.properties
 .vscode/*
 *.code-workspace
 
-# Secrets/Credentials files
-creds.env
-
-
-# Invoke overrides
-invoke.yml
-invoke.yaml
